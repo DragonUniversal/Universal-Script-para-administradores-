@@ -8,7 +8,7 @@ MakeWindow({
 
         Title = "Dragon Menu I Universal - v5.7",
 
-        Animation = "made by Victorscript"
+        Animation = "made by : Victorscript"
 
     },
 
