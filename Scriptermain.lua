@@ -282,12 +282,16 @@ AddToggle(Main, {
 })
 
 
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 local espNomeAtivado = false
 local espDistAtivado = false
 local connections = {}
+
+-- Cor customizável (valor padrão amarelo)
+local espCor = Color3.fromRGB(255, 255, 0)
 
 local function criarESP(player)
     if player == LocalPlayer then return end
@@ -300,8 +304,6 @@ local function criarESP(player)
             local humanoid = char:FindFirstChild("Humanoid")
 
             if humanoid and humanoid.Health > 0 then
-                local cor = Color3.fromRGB(255, 255, 255)
-
                 -- ESP NOME
                 if espNomeAtivado and head and not head:FindFirstChild("ESP_Name") then
                     local espNome = Instance.new("BillboardGui")
@@ -312,9 +314,10 @@ local function criarESP(player)
                     espNome.AlwaysOnTop = true
 
                     local texto = Instance.new("TextLabel")
+                    texto.Name = "Texto"
                     texto.Size = UDim2.new(1, 0, 1, 0)
                     texto.BackgroundTransparency = 1
-                    texto.TextColor3 = cor
+                    texto.TextColor3 = espCor
                     texto.TextStrokeTransparency = 0.4
                     texto.TextStrokeColor3 = Color3.new(0, 0, 0)
                     texto.Font = Enum.Font.Gotham
@@ -339,14 +342,14 @@ local function criarESP(player)
                     espDist.AlwaysOnTop = true
 
                     local textoDist = Instance.new("TextLabel")
+                    textoDist.Name = "Texto"
                     textoDist.Size = UDim2.new(1, 0, 1, 0)
                     textoDist.BackgroundTransparency = 1
-                    textoDist.TextColor3 = cor
+                    textoDist.TextColor3 = espCor
                     textoDist.TextStrokeTransparency = 0.4
                     textoDist.TextStrokeColor3 = Color3.new(0, 0, 0)
                     textoDist.Font = Enum.Font.Gotham
                     textoDist.TextSize = 10
-                    textoDist.Name = "Texto"
                     textoDist.Text = ""
                     textoDist.Parent = espDist
 
@@ -357,12 +360,19 @@ local function criarESP(player)
                     end)
                 end
 
-                -- Atualizar texto da distância
-                if espDistAtivado and rightFoot and rightFoot:FindFirstChild("ESP_Distancia") then
-                    local textoDist = rightFoot.ESP_Distancia:FindFirstChild("Texto")
-                    if textoDist and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("HumanoidRootPart") then
+                -- Atualizar texto e cor
+                if rightFoot then
+                    local distGui = rightFoot:FindFirstChild("ESP_Distancia")
+                    if distGui and distGui:FindFirstChild("Texto") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("HumanoidRootPart") then
                         local distancia = (LocalPlayer.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
-                        textoDist.Text = math.floor(distancia) .. "m"
+                        distGui.Texto.Text = math.floor(distancia) .. "m"
+                        distGui.Texto.TextColor3 = espCor
+                    end
+                end
+                if head then
+                    local nomeGui = head:FindFirstChild("ESP_Name")
+                    if nomeGui and nomeGui:FindFirstChild("Texto") then
+                        nomeGui.Texto.TextColor3 = espCor
                     end
                 end
             end
@@ -404,7 +414,7 @@ local function limparESP()
     end
 end
 
--- ESP NOME
+-- BOTÃO: ESP NOME
 AddToggle(Visuais, {
     Name = "ESP Name",
     Default = false,
@@ -424,7 +434,7 @@ AddToggle(Visuais, {
     end
 })
 
--- ESP DISTÂNCIA
+-- BOTÃO: ESP DISTÂNCIA
 AddToggle(Visuais, {
     Name = "ESP Distance",
     Default = false,
@@ -443,6 +453,16 @@ AddToggle(Visuais, {
         end
     end
 })
+
+-- COLOR
+AddColorPicker(Visuais, {
+    Name = "Change Color",
+    Default = Color3.fromRGB(255, 255, 0),
+    Callback = function(Value)
+        espCor = Value
+    end
+})
+
 
 
 -- Variável global para controlar o estado do ESP
