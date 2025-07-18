@@ -414,7 +414,7 @@ local function limparESP()
 end
 
 -- BOTÃO: ESP NOME
-AddToggle(Main, {
+AddToggle(Visuais, {
     Name = "ESP Name",
     Default = false,
     Callback = function(Value)
@@ -434,7 +434,7 @@ AddToggle(Main, {
 })
 
 -- BOTÃO: ESP DISTÂNCIA
-AddToggle(Main, {
+AddToggle(Visuais, {
     Name = "ESP Distance",
     Default = false,
     Callback = function(Value)
@@ -454,7 +454,7 @@ AddToggle(Main, {
 })
 
 -- COLOR
-AddColorPicker(Main, {
+AddColorPicker(Visuais, {
     Name = "Change Color",
     Default = Color3.fromRGB(255, 0, 0),
     Callback = function(Value)
