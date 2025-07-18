@@ -204,7 +204,7 @@ AddToggle(Main, {
 
 local jumpAtivado = false
 local jumpPowerSelecionado = 25
-local jumpPowerPadrao = 50  -- Valor padrão do JumpPower do Roblox
+local jumpPowerPadrao = 50 
 
 -- Função para aplicar ou restaurar altura do pulo
 local function aplicarJumpPower()
@@ -282,7 +282,6 @@ AddToggle(Main, {
 })
 
 
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
@@ -290,8 +289,8 @@ local espNomeAtivado = false
 local espDistAtivado = false
 local connections = {}
 
--- Cor customizável (valor padrão amarelo)
-local espCor = Color3.fromRGB(255, 255, 0)
+-- Cor customizável
+local espCor = Color3.fromRGB(255, 0, 0)
 
 local function criarESP(player)
     if player == LocalPlayer then return end
@@ -300,7 +299,7 @@ local function criarESP(player)
         while (espNomeAtivado or espDistAtivado) and player and player.Character do
             local char = player.Character
             local head = char:FindFirstChild("Head")
-            local rightFoot = char:FindFirstChild("RightFoot")
+            local root = char:FindFirstChild("HumanoidRootPart")
             local humanoid = char:FindFirstChild("Humanoid")
 
             if humanoid and humanoid.Health > 0 then
@@ -333,12 +332,12 @@ local function criarESP(player)
                 end
 
                 -- ESP DISTÂNCIA
-                if espDistAtivado and rightFoot and not rightFoot:FindFirstChild("ESP_Distancia") then
+                if espDistAtivado and root and not root:FindFirstChild("ESP_Distancia") then
                     local espDist = Instance.new("BillboardGui")
                     espDist.Name = "ESP_Distancia"
-                    espDist.Adornee = rightFoot
+                    espDist.Adornee = root
                     espDist.Size = UDim2.new(0, 100, 0, 18)
-                    espDist.StudsOffset = Vector3.new(1.5, 0, 0)
+                    espDist.StudsOffset = Vector3.new(0, -3, 0)
                     espDist.AlwaysOnTop = true
 
                     local textoDist = Instance.new("TextLabel")
@@ -353,7 +352,7 @@ local function criarESP(player)
                     textoDist.Text = ""
                     textoDist.Parent = espDist
 
-                    espDist.Parent = rightFoot
+                    espDist.Parent = root
 
                     humanoid.Died:Connect(function()
                         espDist:Destroy()
@@ -361,8 +360,8 @@ local function criarESP(player)
                 end
 
                 -- Atualizar texto e cor
-                if rightFoot then
-                    local distGui = rightFoot:FindFirstChild("ESP_Distancia")
+                if root then
+                    local distGui = root:FindFirstChild("ESP_Distancia")
                     if distGui and distGui:FindFirstChild("Texto") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and char:FindFirstChild("HumanoidRootPart") then
                         local distancia = (LocalPlayer.Character.HumanoidRootPart.Position - char.HumanoidRootPart.Position).Magnitude
                         distGui.Texto.Text = math.floor(distancia) .. "m"
@@ -403,19 +402,19 @@ local function limparESP()
         local char = player.Character
         if char then
             local head = char:FindFirstChild("Head")
-            local foot = char:FindFirstChild("RightFoot")
+            local root = char:FindFirstChild("HumanoidRootPart")
             if head and head:FindFirstChild("ESP_Name") then
                 head.ESP_Name:Destroy()
             end
-            if foot and foot:FindFirstChild("ESP_Distancia") then
-                foot.ESP_Distancia:Destroy()
+            if root and root:FindFirstChild("ESP_Distancia") then
+                root.ESP_Distancia:Destroy()
             end
         end
     end
 end
 
 -- BOTÃO: ESP NOME
-AddToggle(Visuais, {
+AddToggle(Main, {
     Name = "ESP Name",
     Default = false,
     Callback = function(Value)
@@ -435,7 +434,7 @@ AddToggle(Visuais, {
 })
 
 -- BOTÃO: ESP DISTÂNCIA
-AddToggle(Visuais, {
+AddToggle(Main, {
     Name = "ESP Distance",
     Default = false,
     Callback = function(Value)
@@ -455,14 +454,13 @@ AddToggle(Visuais, {
 })
 
 -- COLOR
-AddColorPicker(Visuais, {
+AddColorPicker(Main, {
     Name = "Change Color",
-    Default = Color3.fromRGB(255, 255, 0),
+    Default = Color3.fromRGB(255, 0, 0),
     Callback = function(Value)
         espCor = Value
     end
 })
-
 
 
 -- Variável global para controlar o estado do ESP
