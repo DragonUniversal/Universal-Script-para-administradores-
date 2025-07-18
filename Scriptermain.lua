@@ -921,7 +921,8 @@ AddToggle(Servidor, {
 })
 
 
-local Players = game:GetSrvice("Players")
+
+local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
@@ -1246,8 +1247,8 @@ local function notify(title, text)
     end
 end
 
--- Notifica quando um jogador entra no j
- Players.PlayerAdded:Connect(function(player)
+-- Notifica quando um jogador entra no jogo
+Players.PlayerAdded:Connect(function(player)
     notify(player.Name, "entered the game,")
 end)
 
@@ -1264,5 +1265,3 @@ AddToggle(Config, {
         notificacaoAtivada = Value
     end
 })
-
-                                                                                
