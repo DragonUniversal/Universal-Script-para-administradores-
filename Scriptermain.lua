@@ -671,17 +671,15 @@ AddToggle(Visuais, {
     end
 })
 
+
 local Players = game:GetService("Players") 
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
 local playerName = ""
 local jogadorSelecionado = nil
-local observando = false
-local observarConnection = nil
-local dropdownRef = nil
 
--- Função para encontrar jogador pelo nome digitado (busca parcial)
+-- Função para encontrar jogador
 local function encontrarJogador(nome)
 	local lowerName = nome:lower()
 	for _, player in pairs(Players:GetPlayers()) do
@@ -703,65 +701,6 @@ AddTextBox(Player, {
 	end
 })
 
--- Parar observação
-local function pararObservar()
-	if observarConnection then
-		observarConnection:Disconnect()
-		observarConnection = nil
-	end
-	observando = false
-	if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-		workspace.CurrentCamera.CameraSubject = LocalPlayer.Character.Humanoid
-	end
-	print("Observação desativada.")
-end
-
--- Iniciar observação
-local function iniciarObservar(jogador)
-	if not jogador or jogador == LocalPlayer then
-		warn("Jogador inválido para observar.")
-		return
-	end
-
-	observando = true
-
-	if not jogador.Character or not jogador.Character:FindFirstChild("Humanoid") then
-		warn("Personagem do jogador não está disponível.")
-		return
-	end
-
-	workspace.CurrentCamera.CameraSubject = jogador.Character.Humanoid
-	print("Observando " .. jogador.Name)
-
-	observarConnection = jogador.CharacterAdded:Connect(function()
-		wait(1)
-		if observando then
-			if jogador.Character and jogador.Character:FindFirstChild("Humanoid") then
-				workspace.CurrentCamera.CameraSubject = jogador.Character.Humanoid
-				print("Continuando observação após respawn.")
-			end
-		end
-	end)
-end
-
--- Toggle para observar
-AddToggle(Player, {
-	Name = "Observe",
-	Default = false,
-	Callback = function(Value)
-		jogadorSelecionado = encontrarJogador(playerName)
-		if Value then
-			if jogadorSelecionado then
-				iniciarObservar(jogadorSelecionado)
-			else
-				warn("Jogador não encontrado para observar.")
-			end
-		else
-			pararObservar()
-		end
-	end
-})
-
 -- Botão de teleporte
 AddButton(Player, {
 	Name = "Teleport",
@@ -780,6 +719,45 @@ AddButton(Player, {
 		end
 	end
 })
+
+-- HEADSIT
+local headsitAtivado = false
+local headsitConnection
+
+local function ativarHeadsit()
+	headsitConnection = RunService.RenderStepped:Connect(function()
+		local jogador = encontrarJogador(playerName)
+		if jogador and jogador.Character and jogador.Character:FindFirstChild("Head") then
+			local minhaChar = LocalPlayer.Character
+			if minhaChar and minhaChar:FindFirstChild("HumanoidRootPart") then
+				local headPos = jogador.Character.Head.Position
+				minhaChar:PivotTo(CFrame.new(headPos + Vector3.new(0, 0.5, 0)))
+			end
+		end
+	end)
+end
+
+local function desativarHeadsit()
+	if headsitConnection then
+		headsitConnection:Disconnect()
+		headsitConnection = nil
+	end
+end
+
+-- Botão para HEADSIT
+AddToggle(Player, {
+	Name = "Headsit",
+	Default = false,
+	Callback = function(Value)
+		headsitAtivado = Value
+		if headsitAtivado then
+			ativarHeadsit()
+		else
+			desativarHeadsit()
+		end
+	end
+})
+
 
 local section = AddSection(Player, {"Teleport"})
 
