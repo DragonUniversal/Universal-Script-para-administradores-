@@ -160,7 +160,6 @@ local Toggle = AddToggle(Main, {
     end
 })
 
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -279,3 +278,13 @@ AddSlider(Main, {
         end
     end
 })
+
+AddToggle(Main, {
+    Name = "Gravity",
+    Default = false,
+    Callback = function(Value)
+        gravidadeAtivada = Value
+        aplicarAtributos()
+    end
+})
+
