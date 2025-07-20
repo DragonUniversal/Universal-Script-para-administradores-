@@ -720,43 +720,6 @@ AddButton(Player, {
 	end
 })
 
--- HEADSIT
-local headsitAtivado = false
-local headsitConnection
-
-local function ativarHeadsit()
-	headsitConnection = RunService.RenderStepped:Connect(function()
-		local jogador = encontrarJogador(playerName)
-		if jogador and jogador.Character and jogador.Character:FindFirstChild("Head") then
-			local minhaChar = LocalPlayer.Character
-			if minhaChar and minhaChar:FindFirstChild("HumanoidRootPart") then
-				local headPos = jogador.Character.Head.Position
-				minhaChar:PivotTo(CFrame.new(headPos + Vector3.new(0, 0.5, 0)))
-			end
-		end
-	end)
-end
-
-local function desativarHeadsit()
-	if headsitConnection then
-		headsitConnection:Disconnect()
-		headsitConnection = nil
-	end
-end
-
--- Botão para HEADSIT
-AddToggle(Player, {
-	Name = "Headsit",
-	Default = false,
-	Callback = function(Value)
-		headsitAtivado = Value
-		if headsitAtivado then
-			ativarHeadsit()
-		else
-			desativarHeadsit()
-		end
-	end
-})
 
 
 local section = AddSection(Player, {"Teleport"})
