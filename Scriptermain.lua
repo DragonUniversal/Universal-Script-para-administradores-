@@ -8,7 +8,7 @@ MakeWindow({
 
         Title = "Dragon Menu I Universal - v5.7",
 
-        Animation = "made by : Victorscript"
+        Animation = "by Administrators"
 
     },
 
@@ -62,17 +62,13 @@ MinimizeButton({
 
 })
 
-
 -- Criação da aba principal
-
-
 
 local Main = MakeTab({Name = "Main"})
 local Player = MakeTab({Name = "Player"})
 local Visuais = MakeTab({Name = "Visuals"})
 local Servidor = MakeTab({Name = "Server"})
 local Config = MakeTab({Name = "Settings"})
-
 
 MakeNotifi({
   Title = "Dragon Menu",
@@ -159,6 +155,7 @@ local Toggle = AddToggle(Main, {
         toggleInfiniteJump(Value)
     end
 })
+
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
@@ -288,6 +285,53 @@ AddToggle(Main, {
     end
 })
 
+local Players = game:GetService("Players") 
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local playerName = ""
+local jogadorSelecionado = nil
+
+-- Função para encontrar jogador
+local function encontrarJogador(nome)
+	local lowerName = nome:lower()
+	for _, player in pairs(Players:GetPlayers()) do
+		if player.Name:lower():sub(1, #lowerName) == lowerName then
+			return player
+		end
+	end
+	return nil
+end
+
+-- Caixa de texto para digitar nome do jogador
+AddTextBox(Player, {
+	Name = "Enter player name",
+	Default = "",
+	Placeholder = "Nome do jogador aqui...",
+	Callback = function(text)
+		playerName = text
+		jogadorSelecionado = encontrarJogador(playerName)
+	end
+})
+
+-- Botão de teleporte
+AddButton(Player, {
+	Name = "Teleport",
+	Callback = function()
+		local jogador = encontrarJogador(playerName)
+		if jogador and jogador.Character and jogador.Character:FindFirstChild("HumanoidRootPart") then
+			local localChar = LocalPlayer.Character
+			if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+				localChar.HumanoidRootPart.CFrame = jogador.Character.HumanoidRootPart.CFrame * CFrame.new(3, 0, 3)
+				print("Teletransportado para " .. jogador.Name)
+			else
+				warn("Seu personagem não está disponível.")
+			end
+		else
+			warn("Jogador inválido ou personagem não carregado.")
+		end
+	end
+})
 
 
 local Players = game:GetService("Players")
@@ -469,7 +513,6 @@ AddColorPicker(Visuais, {
         espCor = Value
     end
 })
-
 
 -- Variável global para controlar o estado do ESP
 local espAtivado = false
@@ -679,57 +722,6 @@ AddToggle(Visuais, {
     end
 })
 
-
-local Players = game:GetService("Players") 
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-
-local playerName = ""
-local jogadorSelecionado = nil
-
--- Função para encontrar jogador
-local function encontrarJogador(nome)
-	local lowerName = nome:lower()
-	for _, player in pairs(Players:GetPlayers()) do
-		if player.Name:lower():sub(1, #lowerName) == lowerName then
-			return player
-		end
-	end
-	return nil
-end
-
--- Caixa de texto para digitar nome do jogador
-AddTextBox(Player, {
-	Name = "Enter player name",
-	Default = "",
-	Placeholder = "Nome do jogador aqui...",
-	Callback = function(text)
-		playerName = text
-		jogadorSelecionado = encontrarJogador(playerName)
-	end
-})
-
--- Botão de teleporte
-AddButton(Player, {
-	Name = "Teleport",
-	Callback = function()
-		local jogador = encontrarJogador(playerName)
-		if jogador and jogador.Character and jogador.Character:FindFirstChild("HumanoidRootPart") then
-			local localChar = LocalPlayer.Character
-			if localChar and localChar:FindFirstChild("HumanoidRootPart") then
-				localChar.HumanoidRootPart.CFrame = jogador.Character.HumanoidRootPart.CFrame * CFrame.new(3, 0, 3)
-				print("Teletransportado para " .. jogador.Name)
-			else
-				warn("Seu personagem não está disponível.")
-			end
-		else
-			warn("Jogador inválido ou personagem não carregado.")
-		end
-	end
-})
-
-
-
 local section = AddSection(Player, {"Teleport"})
 
 -- Variável para guardar a posição salva
@@ -868,7 +860,6 @@ AddToggle(Servidor, {
         antiKickEnabled = state
     end
 })
-
 
 
 local Players = game:GetService("Players")
