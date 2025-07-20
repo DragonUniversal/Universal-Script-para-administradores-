@@ -163,11 +163,58 @@ local Toggle = AddToggle(Main, {
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
 
+-- Variáveis principais
 local velocidadeAtivada = false
 local velocidadeValor = 25
 
--- Slider de Velocidade
+local jumpAtivado = false
+local jumpPowerSelecionado = 40
+local jumpPowerPadrao = 50
+
+local gravidadeAtivada = false
+local gravidadeSelecionada = 196.2
+local gravidadePadrao = 196.2
+
+-- Atualiza
+local function aplicarAtributos()
+    local character = LocalPlayer.Character
+    if not character then return end
+
+    local humanoid = character:WaitForChild("Humanoid", 3)
+    if humanoid then
+        -- Speed
+        if velocidadeAtivada then
+            humanoid.WalkSpeed = velocidadeValor
+        else
+            humanoid.WalkSpeed = 16
+        end
+
+        -- Jump
+        humanoid.UseJumpPower = true
+        if jumpAtivado then
+            humanoid.JumpPower = jumpPowerSelecionado
+        else
+            humanoid.JumpPower = jumpPowerPadrao
+        end
+    end
+
+    -- Gravity
+    if gravidadeAtivada then
+        workspace.Gravity = gravidadeSelecionada
+    else
+        workspace.Gravity = gravidadePadrao
+    end
+end
+
+-- Executa ao spawnar
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    aplicarAtributos()
+end)
+
+-- SPEED
 AddSlider(Main, {
     Name = "Speed",
     MinValue = 16,
@@ -176,12 +223,59 @@ AddSlider(Main, {
     Increase = 1,
     Callback = function(Value)
         velocidadeValor = Value
-        if velocidadeAtivada then
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if velocidadeAtivada and LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
             if humanoid then
                 humanoid.WalkSpeed = velocidadeValor
             end
+        end
+    end
+})
+
+AddToggle(Main, {
+    Name = "Speed",
+    Default = false,
+    Callback = function(Value)
+        velocidadeAtivada = Value
+        aplicarAtributos()
+    end
+})
+
+-- SUPER JUMP
+AddSlider(Main, {
+    Name = "Super Jump",
+    MinValue = 10,
+    MaxValue = 900,
+    Default = 40,
+    Increase = 1,
+    Callback = function(Value)
+        jumpPowerSelecionado = Value
+        if jumpAtivado then
+            aplicarAtributos()
+        end
+    end
+})
+
+AddToggle(Main, {
+    Name = "Super Jump",
+    Default = false,
+    Callback = function(Value)
+        jumpAtivado = Value
+        aplicarAtributos()
+    end
+})
+
+-- GRAVITY
+AddSlider(Main, {
+    Name = "Gravity",
+    MinValue = 0,
+    MaxValue = 500,
+    Default = 196.2,
+    Increase = 1,
+    Callback = function(Value)
+        gravidadeSelecionada = Value
+        if gravidadeAtivada then
+            workspace.Gravity = gravidadeSelecionada
         end
     end
 })
