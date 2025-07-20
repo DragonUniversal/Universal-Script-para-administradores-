@@ -950,3 +950,241 @@ AddToggle(Servidor, {
 	end
 })
 
+AddButton(Config, {
+    Name = "FPS Boost",
+    Callback = function()
+        print("Botão foi clicado!")
+
+        pcall(function()
+            -- Otimiza todas as partes para reduzir o impacto gráfico
+            for _, v in ipairs(workspace:GetDescendants()) do
+                if v:IsA("Part") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+                    v.Material = Enum.Material.SmoothPlastic -- Remove texturas complexas
+                    v.Reflectance = 0 -- Remove reflexos
+                    v.CastShadow = false -- Desativa sombras
+                elseif v:IsA("Decal") or v:IsA("Texture") then
+                    v.Transparency = 1 -- Oculta texturas e decals
+                elseif v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Explosion") then
+                    v:Destroy() -- Remove efeitos que consomem desempenho
+                end
+            end
+
+            -- Ajusta configurações para melhorar o FPS
+            pcall(function()
+                settings().Rendering.QualityLevel = Enum.QualityLevel.Level01 -- Reduz qualidade gráfica
+                workspace.GlobalShadows = false -- Remove sombras globais
+
+                if game:FindFirstChild("Lighting") then
+                    local lighting = game.Lighting
+                    lighting.FogEnd = 1e10 -- Remove neblina
+                    lighting.GlobalShadows = false
+                    lighting.Brightness = 2
+                end
+            end)
+        end)
+    end
+})
+
+
+AddToggle(Config, {
+    Name = "FPS",
+    Default = false,
+    Callback = function(Value)
+        local Players = game:GetService("Players")
+        local RunService = game:GetService("RunService")
+        local player = Players.LocalPlayer
+
+        local connection
+
+        local function createFPSCounter()
+            local playerGui = player:FindFirstChild("PlayerGui") or player:WaitForChild("PlayerGui")
+
+            -- Remover contador existente para evitar duplicações
+            local existingGui = playerGui:FindFirstChild("FPSCounter")
+            if existingGui then
+                existingGui:Destroy()
+            end
+
+            -- Criar novo ScreenGui
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "FPSCounter"
+            screenGui.ResetOnSpawn = false
+            screenGui.Parent = playerGui
+
+            -- Criar FPS Label
+            local fpsLabel = Instance.new("TextLabel")
+            fpsLabel.Size = UDim2.new(0, 80, 0, 25)
+            fpsLabel.Position = UDim2.new(1, -290, 0, 1)
+            fpsLabel.BackgroundTransparency = 1
+            fpsLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+            fpsLabel.TextSize = 14
+            fpsLabel.Font = Enum.Font.Code
+            fpsLabel.Text = "FPS: 0"
+            fpsLabel.Parent = screenGui
+            fpsLabel.Active = true
+            fpsLabel.Draggable = true
+            fpsLabel.TextStrokeTransparency = 0.6
+            fpsLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+
+            -- FPS Calculation
+            local lastTime = tick()
+            local frameCount = 0
+
+            connection = RunService.RenderStepped:Connect(function()
+                frameCount = frameCount + 1
+                local currentTime = tick()
+                if currentTime - lastTime >= 1 then
+                    fpsLabel.Text = "FPS: " .. frameCount
+                    frameCount = 0
+                    lastTime = currentTime
+                end
+            end)
+
+            -- Atualizar após respawn
+            player.CharacterAdded:Connect(function()
+                task.wait(1)
+                createFPSCounter()
+            end)
+        end
+
+        if Value then
+            createFPSCounter()
+        else
+            -- Remover GUI e desconectar a atualização
+            local playerGui = player:FindFirstChild("PlayerGui")
+            if playerGui then
+                local existingGui = playerGui:FindFirstChild("FPSCounter")
+                if existingGui then
+                    existingGui:Destroy()
+                end
+            end
+            if connection then
+                connection:Disconnect()
+                connection = nil
+            end
+        end
+    end
+})
+
+
+local Lighting = game:GetService("Lighting")  
+
+-- Armazena configurações originais
+local originalSettings = {
+	Brightness = Lighting.Brightness,
+	Ambient = Lighting.Ambient,
+	OutdoorAmbient = Lighting.OutdoorAmbient,
+	ClockTime = Lighting.ClockTime,
+	FogEnd = Lighting.FogEnd,
+	GlobalShadows = Lighting.GlobalShadows
+}
+
+local fullBrightEnabled = false
+local connections = {}
+
+-- Ativa o modo manhã com iluminação suave
+local function enableMorningLight()
+	fullBrightEnabled = true
+
+	Lighting.Brightness = 1.5
+	Lighting.Ambient = Color3.fromRGB(180, 180, 160) -- tom suave
+	Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 170)
+	Lighting.ClockTime = 7 -- manhã cedo
+	Lighting.FogEnd = 1e9
+	Lighting.GlobalShadows = true
+
+	-- Protege propriedades de alterações externas
+	table.insert(connections, Lighting:GetPropertyChangedSignal("ClockTime"):Connect(function()
+		if fullBrightEnabled then Lighting.ClockTime = 7 end
+	end))
+
+	table.insert(connections, Lighting:GetPropertyChangedSignal("Ambient"):Connect(function()
+		if fullBrightEnabled then Lighting.Ambient = Color3.fromRGB(180, 180, 160) end
+	end))
+
+	table.insert(connections, Lighting:GetPropertyChangedSignal("OutdoorAmbient"):Connect(function()
+		if fullBrightEnabled then Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 170) end
+	end))
+
+	table.insert(connections, Lighting:GetPropertyChangedSignal("Brightness"):Connect(function()
+		if fullBrightEnabled then Lighting.Brightness = 1.5 end
+	end))
+
+	table.insert(connections, Lighting:GetPropertyChangedSignal("GlobalShadows"):Connect(function()
+		if fullBrightEnabled then Lighting.GlobalShadows = true end
+	end))
+
+	table.insert(connections, Lighting:GetPropertyChangedSignal("FogEnd"):Connect(function()
+		if fullBrightEnabled then Lighting.FogEnd = 1e9 end
+	end))
+
+	print("Lighting ativado.")
+end
+
+-- Restaura os valores originais
+local function disableMorningLight()
+	fullBrightEnabled = false
+
+	for _, conn in ipairs(connections) do
+		if conn.Disconnect then
+			conn:Disconnect()
+		end
+	end
+	connections = {}
+
+	for prop, value in pairs(originalSettings) do
+		Lighting[prop] = value
+	end
+
+	print("Lighting desativardo.")
+end
+
+-- Toggle de iluminação
+AddToggle(Config, {
+	Name = "Lighting",
+	Default = false,
+	Callback = function(state) 
+		if state then 
+			enableMorningLight()
+		else
+			disableMorningLight()
+		end
+	end
+})
+
+
+local Players = game:GetService("Players")
+
+local StarterGui = game:GetService("StarterGui")
+
+local notificacaoAtivada = false
+
+-- Função para exibir notificações
+local function notify(title, text)
+    if notificacaoAtivada then
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Duration = 5
+        })
+    end
+end
+
+-- Notifica quando um jogador entra no jogo
+Players.PlayerAdded:Connect(function(player)
+    notify(player.Name, "entered the game,")
+end)
+
+-- Notifica quando um jogador sai do jogo
+Players.PlayerRemoving:Connect(function(player)
+    notify(player.Name, "left the game.")
+end)
+
+-- Toggle para ativar/desativar notificações (sem aviso ao ativar)
+AddToggle(Config, {
+    Name = "Player Notifications",
+    Default = false,
+    Callback = function(Value)
+        notificacaoAtivada = Value
+    end
+})
