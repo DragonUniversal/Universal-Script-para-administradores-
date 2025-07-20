@@ -160,14 +160,60 @@ local Toggle = AddToggle(Main, {
     end
 })
 
-
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
 
+-- Variáveis principais
 local velocidadeAtivada = false
-local velocidadeValor = 25 -- valor inicial
+local velocidadeValor = 25
 
--- Slider de Velocidade
+local jumpAtivado = false
+local jumpPowerSelecionado = 40
+local jumpPowerPadrao = 50
+
+local gravidadeAtivada = false
+local gravidadeSelecionada = 196.2
+local gravidadePadrao = 196.2
+
+-- Atualiza
+local function aplicarAtributos()
+    local character = LocalPlayer.Character
+    if not character then return end
+
+    local humanoid = character:WaitForChild("Humanoid", 3)
+    if humanoid then
+        -- Speed
+        if velocidadeAtivada then
+            humanoid.WalkSpeed = velocidadeValor
+        else
+            humanoid.WalkSpeed = 16
+        end
+
+        -- Jump
+        humanoid.UseJumpPower = true
+        if jumpAtivado then
+            humanoid.JumpPower = jumpPowerSelecionado
+        else
+            humanoid.JumpPower = jumpPowerPadrao
+        end
+    end
+
+    -- Gravity
+    if gravidadeAtivada then
+        workspace.Gravity = gravidadeSelecionada
+    else
+        workspace.Gravity = gravidadePadrao
+    end
+end
+
+-- Executa ao spawnar
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.5)
+    aplicarAtributos()
+end)
+
+-- SPEED
 AddSlider(Main, {
     Name = "Speed",
     MinValue = 16,
@@ -176,9 +222,8 @@ AddSlider(Main, {
     Increase = 1,
     Callback = function(Value)
         velocidadeValor = Value
-        if velocidadeAtivada then
-            local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if velocidadeAtivada and LocalPlayer.Character then
+            local humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
             if humanoid then
                 humanoid.WalkSpeed = velocidadeValor
             end
@@ -186,42 +231,16 @@ AddSlider(Main, {
     end
 })
 
-
--- Toggle para ativar/desativar a velocidade
 AddToggle(Main, {
     Name = "Speed",
     Default = false,
     Callback = function(Value)
         velocidadeAtivada = Value
-        local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid.WalkSpeed = Value and velocidadeValor or 16
-        end
+        aplicarAtributos()
     end
 })
 
-
-local jumpAtivado = false
-local jumpPowerSelecionado = 25
-local jumpPowerPadrao = 50 
-
--- Função para aplicar ou restaurar altura do pulo
-local function aplicarJumpPower()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.UseJumpPower = true
-        if jumpAtivado then
-            humanoid.JumpPower = jumpPowerSelecionado
-        else
-            humanoid.JumpPower = jumpPowerPadrao
-        end
-    end
-end
-
--- Slider de Altura do Pulo
+-- SUPER JUMP
 AddSlider(Main, {
     Name = "Super Jump",
     MinValue = 10,
@@ -231,28 +250,21 @@ AddSlider(Main, {
     Callback = function(Value)
         jumpPowerSelecionado = Value
         if jumpAtivado then
-            aplicarJumpPower()
+            aplicarAtributos()
         end
     end
 })
 
-
--- Toggle para ativar/desativar altura do pulo
 AddToggle(Main, {
     Name = "Super Jump",
     Default = false,
     Callback = function(Value)
         jumpAtivado = Value
-        aplicarJumpPower()
+        aplicarAtributos()
     end
 })
 
-
-local gravidadeAtivada = false
-local gravidadeSelecionada = 196.2 -- valor padrão
-local gravidadePadrao = 196.2
-
--- Slider para ajustar a gravidade
+-- GRAVITY
 AddSlider(Main, {
     Name = "Gravity",
     MinValue = 0,
@@ -267,19 +279,15 @@ AddSlider(Main, {
     end
 })
 
--- Toggle para ativar/desativar o controle de gravidade
 AddToggle(Main, {
     Name = "Gravity",
     Default = false,
     Callback = function(Value)
         gravidadeAtivada = Value
-        if gravidadeAtivada then
-            workspace.Gravity = gravidadeSelecionada
-        else
-            workspace.Gravity = gravidadePadrao
-        end
+        aplicarAtributos()
     end
 })
+
 
 
 local Players = game:GetService("Players")
@@ -300,7 +308,7 @@ local function criarESP(player)
             local char = player.Character
             local head = char:FindFirstChild("Head")
             local root = char:FindFirstChild("HumanoidRootPart")
-            local humanoid = char:FindFirstChild("Humanoid")
+            lcal humanoid = char:FindFirstChild("Humanoid")
 
             if humanoid and humanoid.Health > 0 then
                 -- ESP NOME
