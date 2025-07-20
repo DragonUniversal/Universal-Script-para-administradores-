@@ -659,3 +659,294 @@ AddToggle(Visuais, {
         aplicarFov()
     end
 })
+
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local playerName = ""
+
+-- Função para encontrar jogador pelo nome digitado (busca parcial)
+local function encontrarJogador(nome)
+	local lowerName = nome:lower()
+	for _, player in pairs(Players:GetPlayers()) do
+		if player.Name:lower():sub(1, #lowerName) == lowerName then
+			return player
+		end
+	end
+	return nil
+end
+
+-- Caixa de texto para digitar nome do jogador
+AddTextBox(Player, {
+	Name = "Enter player name",
+	Default = "",
+	Placeholder = "Nome do jogador aqui...",
+	Callback = function(text)
+		playerName = text
+	end
+})
+
+-- Botão de teleporte
+AddButton(Player, {
+	Name = "Teleport",
+	Callback = function()
+		local jogador = encontrarJogador(playerName)
+		if jogador and jogador.Character and jogador.Character:FindFirstChild("HumanoidRootPart") then
+			local localChar = LocalPlayer.Character
+			if localChar and localChar:FindFirstChild("HumanoidRootPart") then
+				localChar.HumanoidRootPart.CFrame = jogador.Character.HumanoidRootPart.CFrame * CFrame.new(3, 0, 3)
+				print("Teletransportado para " .. jogador.Name)
+			else
+				warn("Seu personagem não está disponível.")
+			end
+		else
+			warn("Jogador inválido ou personagem não carregado.")
+		end
+	end
+})
+
+local section = AddSection(Player, {"Teleport"})
+
+-- Variável para guardar a posição salva
+local savedCFrame = nil
+
+-- Botão: Salvar posição
+AddButton(Player, {
+    Name = "Save position",
+    Callback = function()
+        print("Botão foi clicado! Salvando posição...")
+        pcall(function()
+            local hrp = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+            savedCFrame = hrp.CFrame
+            print("Posição salva:", tostring(savedCFrame))
+        end)
+    end
+})
+
+-- Botão: Teleportar para posição salva
+AddButton(Player, {
+    Name = "Teleport to position",
+    Callback = function()
+        print("Botão foi clicado! Teleportando...")
+        pcall(function()
+            if savedCFrame then
+                local hrp = game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart")
+                hrp.CFrame = savedCFrame
+                print("Teleportado com sucesso.")
+            else
+                warn("Nenhuma posição salva ainda!")
+            end
+        end)
+    end
+})
+
+-- Botão: Copy
+AddButton(Player, {
+    Name = "Copy Position",
+    Callback = function()
+        local player = game.Players.LocalPlayer
+        local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local pos = hrp.Position
+            local code = string.format("game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(%.2f, %.2f, %.2f))", pos.X, pos.Y, pos.Z)
+            setclipboard(code)
+            print("Código copiado:", code)
+        end
+    end
+})
+
+
+-- Botão Rejoin
+AddButton(Servidor, {
+	Name = "Rejoin",
+	Callback = function()
+		local TeleportService = cloneref(game:GetService("TeleportService"))
+		local Players = cloneref(game:GetService("Players"))
+		local LocalPlayer = cloneref(Players.LocalPlayer)
+
+		-- Reentra no mesmo lugar do Servidor
+		TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+	end
+})
+
+
+-- Serviços
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local VirtualUser = game:GetService("VirtualUser")
+local LocalPlayer = Players.LocalPlayer
+
+-- Notificação útil
+local function Notify(title, text)
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = title,
+            Text = text,
+            Icon = "rbxassetid://137903795082783",
+            Duration = 3
+        })
+    end)
+end
+
+-- Botão: Anti AFK
+AddButton(Servidor, {
+    Name = "Anti AFK",
+    Callback = function()
+        LocalPlayer.Idled:Connect(function()
+            VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+            wait(1)
+            VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+        end)
+        Notify("Vitor Developer", "Anti AFK Enabled")
+    end
+})
+
+
+-- Serviços
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
+
+-- Estado de ativação
+local antiKickEnabled = false
+local oldNamecallHook
+
+-- Notificar apenas quando um kick for bloqueado
+local function NotifyKickBlocked()
+    pcall(function()
+        StarterGui:SetCore("SendNotification", {
+            Title = "Vitor Developer",
+            Text = "Kick attempt blocked",
+            Icon = "rbxassetid://137903795082783",
+            Duration = 3
+        })
+    end)
+end
+
+-- Hook global
+if not oldNamecallHook then
+    oldNamecallHook = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+        local method = getnamecallmethod()
+        if antiKickEnabled and typeof(method) == "string" and string.lower(method) == "kick" and self == LocalPlayer then
+            NotifyKickBlocked()
+            return wait(9e9)
+        end
+        return oldNamecallHook(self, ...)
+    end))
+end
+
+-- Toggle Anti Kick
+AddToggle(Servidor, {
+    Name = "Anti Kick",
+    Default = false,
+    Callback = function(state)
+        antiKickEnabled = state
+    end
+})
+
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local antiSeatEnabled = false
+local seatedConnection = nil
+local characterConnection = nil
+local seatWatcher = nil
+local ignoreSeats = {}
+
+-- Impede o personagem de sentar
+local function preventSitting(character)
+	local humanoid = character:WaitForChild("Humanoid", 5)
+	if not humanoid then return end
+
+	if seatedConnection then
+		seatedConnection:Disconnect()
+	end
+
+	seatedConnection = humanoid.Seated:Connect(function(isSeated)
+		if isSeated and antiSeatEnabled then
+			humanoid.Sit = false
+		end
+	end)
+
+	if humanoid.Sit then
+		humanoid.Sit = false
+	end
+end
+
+-- Torna todos os assentos não interativos
+local function disableSeatTouch()
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("Seat") or obj:IsA("VehicleSeat") then
+			if not ignoreSeats[obj] then
+				ignoreSeats[obj] = obj.CanTouch
+				obj.CanTouch = false
+			end
+		end
+	end
+end
+
+-- Restaura os assentos
+local function restoreSeats()
+	for seat, original in pairs(ignoreSeats) do
+		if seat and seat:IsDescendantOf(workspace) then
+			seat.CanTouch = original
+		end
+	end
+	ignoreSeats = {}
+end
+
+-- Observa novos assentos adicionados
+local function watchNewSeats()
+	if seatWatcher then seatWatcher:Disconnect() end
+	seatWatcher = workspace.DescendantAdded:Connect(function(desc)
+		if antiSeatEnabled and (desc:IsA("Seat") or desc:IsA("VehicleSeat")) then
+			task.wait(0.1)
+			if desc:IsDescendantOf(workspace) then
+				ignoreSeats[desc] = desc.CanTouch
+				desc.CanTouch = false
+			end
+		end
+	end)
+end
+
+-- Toggle Anti Sit
+AddToggle(Servidor, {
+	Name = "Anti Sit",
+	Default = false,
+	Callback = function(Value)
+		antiSeatEnabled = Value
+
+		if Value then
+			if LocalPlayer.Character then
+				preventSitting(LocalPlayer.Character)
+			end
+
+			if characterConnection then
+				characterConnection:Disconnect()
+			end
+			characterConnection = LocalPlayer.CharacterAdded:Connect(preventSitting)
+
+			disableSeatTouch()
+			watchNewSeats()
+		else
+			if seatedConnection then
+				seatedConnection:Disconnect()
+				seatedConnection = nil
+			end
+			if characterConnection then
+				characterConnection:Disconnect()
+				characterConnection = nil
+			end
+			if seatWatcher then
+				seatWatcher:Disconnect()
+				seatWatcher = nil
+			end
+
+			restoreSeats()
+		end
+	end
+})
+
