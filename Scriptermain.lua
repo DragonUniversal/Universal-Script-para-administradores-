@@ -820,6 +820,104 @@ AddToggle(Player, {
 	end
 })
 
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+
+local LocalPlayer = Players.LocalPlayer
+local Mouse = LocalPlayer:GetMouse()
+
+local portalA, portalB = nil, nil
+local debounce = false
+local portalsEnabled = false
+
+-- Cria um portal com aparência neon
+local function createPortal(position, name, color)
+	local portal = Instance.new("Part")
+	portal.Size = Vector3.new(6, 10, 1)
+	portal.Anchored = true
+	portal.CanCollide = false
+	portal.Position = position + Vector3.new(0, 5, 0)
+	portal.BrickColor = BrickColor.new(color)
+	portal.Material = Enum.Material.Neon
+	portal.Transparency = 0.2
+	portal.Name = name
+	portal.Parent = Workspace
+
+	local decal = Instance.new("Decal")
+	decal.Texture = "rbxassetid://4848206463"
+	decal.Face = Enum.NormalId.Front
+	decal.Parent = portal
+
+	return portal
+end
+
+-- Verifica se o jogador tocou no portal
+local function checkTouch()
+	if not portalsEnabled then return end
+	if not portalA or not portalB then return end
+
+	local char = LocalPlayer.Character
+	if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+	local hrp = char.HumanoidRootPart
+
+	local function teleportIfNear(portal, destination)
+		if debounce then return end
+		if (hrp.Position - portal.Position).Magnitude < 6 then
+			debounce = true
+			hrp.CFrame = destination.CFrame + Vector3.new(0, 5, 0)
+			wait(1)
+			debounce = false
+		end
+	end
+
+	teleportIfNear(portalA, portalB)
+	teleportIfNear(portalB, portalA)
+end
+
+-- Verificação contínua
+RunService.Heartbeat:Connect(checkTouch)
+
+-- Ativa/desativa os portais
+AddToggle(Player, {
+	Name = "Click Portals",
+	Default = false,
+	Callback = function(state)
+		portalsEnabled = state
+
+		if state then
+			warn("Clique em dois pontos para criar os portais.")
+			local count = 0
+
+			local connection
+			connection = Mouse.Button1Down:Connect(function()
+				local hit = Mouse.Hit
+				if not hit then return end
+				local pos = hit.Position
+
+				if count == 0 then
+					if portalA then portalA:Destroy() end
+					portalA = createPortal(pos, "PortalA", "Lime green")
+					count += 1
+				elseif count == 1 then
+					if portalB then portalB:Destroy() end
+					portalB = createPortal(pos, "PortalB", "Bright red")
+					count += 1
+					connection:Disconnect()
+					warn("Portais criados.")
+				end
+			end)
+		else
+			if portalA then portalA:Destroy() end
+			if portalB then portalB:Destroy() end
+			portalA = nil
+			portalB = nil
+			warn("Portais removidos.")
+		end
+	end
+})
+
 
 -- Botão Rejoin
 AddButton(Servidor, {
