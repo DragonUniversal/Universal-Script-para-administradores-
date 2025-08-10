@@ -301,7 +301,7 @@ local function criarBillboard(nome, adornee, offsetY)
 	local gui = Instance.new("BillboardGui")
 	gui.Name = nome
 	gui.Adornee = adornee
-	gui.Size = UDim2.new(0, 100, 0, 18)
+	gui.Size = UDim2.new(0, 150, 0, 22) -- Aumentado
 	gui.StudsOffset = Vector3.new(0, offsetY, 0)
 	gui.AlwaysOnTop = true
 
@@ -310,10 +310,10 @@ local function criarBillboard(nome, adornee, offsetY)
 	texto.Size = UDim2.new(1, 0, 1, 0)
 	texto.BackgroundTransparency = 1
 	texto.TextColor3 = espCor
-	texto.TextStrokeTransparency = 0.4
+	texto.TextStrokeTransparency = (espCor == Color3.fromRGB(255, 255, 255)) and 1 or 0.4
 	texto.TextStrokeColor3 = Color3.new(0, 0, 0)
 	texto.Font = Enum.Font.Gotham
-	texto.TextSize = 10
+	texto.TextSize = 14 -- Aumentado
 	texto.Parent = gui
 
 	gui.Parent = adornee
@@ -345,7 +345,7 @@ local function criarESP(player)
 					humanoid.Died:Connect(function() gui:Destroy() end)
 				end
 
-				-- Atualizar textos
+				-- Atualizar distância
 				if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") and root then
 					local lpPos = LocalPlayer.Character.HumanoidRootPart.Position
 					local targetPos = root.Position
@@ -355,13 +355,16 @@ local function criarESP(player)
 					if guiDist and guiDist:FindFirstChild("Texto") then
 						guiDist.Texto.Text = dist .. "m"
 						guiDist.Texto.TextColor3 = espCor
+						guiDist.Texto.TextStrokeTransparency = (espCor == Color3.fromRGB(255, 255, 255)) and 1 or 0.4
 					end
 				end
 
+				-- Atualizar nome
 				if head then
 					local guiNome = head:FindFirstChild("ESP_Name")
 					if guiNome and guiNome:FindFirstChild("Texto") then
 						guiNome.Texto.TextColor3 = espCor
+						guiNome.Texto.TextStrokeTransparency = (espCor == Color3.fromRGB(255, 255, 255)) and 1 or 0.4
 					end
 				end
 			end
@@ -369,6 +372,34 @@ local function criarESP(player)
 			task.wait(0.3)
 		end
 	end)
+end
+
+-- Limpa apenas ESP Nome
+local function limparESPNome()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local char = player.Character
+		if char then
+			local head = char:FindFirstChild("Head")
+			if head then
+				local esp = head:FindFirstChild("ESP_Name")
+				if esp then esp:Destroy() end
+			end
+		end
+	end
+end
+
+-- Limpa apenas ESP Distância
+local function limparESPDistancia()
+	for _, player in ipairs(Players:GetPlayers()) do
+		local char = player.Character
+		if char then
+			local root = char:FindFirstChild("HumanoidRootPart")
+			if root then
+				local esp = root:FindFirstChild("ESP_Distancia")
+				if esp then esp:Destroy() end
+			end
+		end
+	end
 end
 
 -- Monitoramento de players
@@ -384,24 +415,6 @@ local function monitorarPlayer(player)
 
 	if player.Character then
 		criarESP(player)
-	end
-end
-
--- Limpa todos os ESPs
-local function limparESP()
-	for _, player in ipairs(Players:GetPlayers()) do
-		local char = player.Character
-		if char then
-			for _, partName in ipairs({"Head", "HumanoidRootPart"}) do
-				local part = char:FindFirstChild(partName)
-				if part then
-					for _, espName in ipairs({"ESP_Name", "ESP_Distancia"}) do
-						local esp = part:FindFirstChild(espName)
-						if esp then esp:Destroy() end
-					end
-				end
-			end
-		end
 	end
 end
 
@@ -421,10 +434,10 @@ AddToggle(Visuais, {
 	Default = false,
 	Callback = function(Value)
 		espNomeAtivado = Value
-		if espNomeAtivado or espDistAtivado then
+		if espNomeAtivado then
 			atualizarTodos()
 		else
-			limparESP()
+			limparESPNome()
 		end
 	end
 })
@@ -435,10 +448,10 @@ AddToggle(Visuais, {
 	Default = false,
 	Callback = function(Value)
 		espDistAtivado = Value
-		if espNomeAtivado or espDistAtivado then
+		if espDistAtivado then
 			atualizarTodos()
 		else
-			limparESP()
+			limparESPDistancia()
 		end
 	end
 })
@@ -451,6 +464,7 @@ AddColorPicker(Visuais, {
 		espCor = Value
 	end
 })
+
 
 -- Variável global para controlar o estado do ESP
 local espAtivado = false
