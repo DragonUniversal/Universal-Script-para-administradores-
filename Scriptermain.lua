@@ -6,7 +6,7 @@ MakeWindow({
 
     Hub = {
 
-        Title = "Dragon Menu I Universal - v5.9",
+        Title = "Dragon Menu I Universal - v6.1",
 
         Animation = "by : Victorscript "
 
@@ -1350,6 +1350,36 @@ AddToggle(Config, {
                 connection = nil
             end
         end
+    end
+})
+
+
+local Workspace = game:GetService("Workspace")
+local storedTransparency = {}
+
+local function setXRay(state)
+    if state then
+        for _, part in ipairs(Workspace:GetDescendants()) do
+            if part:IsA("BasePart") and part.Transparency < 0.5 then
+                storedTransparency[part] = part.Transparency
+                part.Transparency = 0.7
+            end
+        end
+    else
+        for part, t in pairs(storedTransparency) do
+            if part and part:IsA("BasePart") then
+                part.Transparency = t
+            end
+        end
+        storedTransparency = {}
+    end
+end
+
+AddToggle(Player, {
+    Name = "X-Ray",
+    Default = false,
+    Callback = function(state)
+        setXRay(state)
     end
 })
 
