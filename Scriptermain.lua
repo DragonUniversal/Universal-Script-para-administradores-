@@ -1375,7 +1375,7 @@ local function setXRay(state)
     end
 end
 
-AddToggle(Player, {
+AddToggle(Config, {
     Name = "X-Ray",
     Default = false,
     Callback = function(state)
