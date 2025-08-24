@@ -946,117 +946,7 @@ AddButton(Servidor, {
 	end
 })
 
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local LocalPlayer = Players.LocalPlayer
 
-local toggleRadar = false
-local radarGui, radarFrame
-local connections = {}
-
--- Criação da interface de radar
-local function createRadarUI()
-	if radarGui then return end
-
-	radarGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
-	radarGui.Name = "PlayerRadar"
-	radarGui.ResetOnSpawn = false
-
-	radarFrame = Instance.new("Frame", radarGui)
-	radarFrame.Size = UDim2.new(0, 130, 0, 130)
-	radarFrame.Position = UDim2.new(0, 20, 0, 20)
-	radarFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-	radarFrame.BorderSizePixel = 0
-	radarFrame.BackgroundTransparency = 0.3
-end
-
--- Atualização
-local function updateRadar()
-	if not radarGui or not radarFrame then return end
-	radarFrame:ClearAllChildren()
-
-	local character = LocalPlayer.Character
-	if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-
-	local rootPos = character.HumanoidRootPart.Position
-
-	-- Ponto central
-	local centerDot = Instance.new("Frame", radarFrame)
-	centerDot.Size = UDim2.new(0, 4, 0, 4)
-	centerDot.Position = UDim2.new(0.5, -2, 0.5, -2)
-	centerDot.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-	centerDot.BorderSizePixel = 0
-
-	-- Outros
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local targetPos = plr.Character.HumanoidRootPart.Position
-			local offset = (targetPos - rootPos) * 0.5
-
-			if offset.Magnitude < 100 then
-				local x = math.clamp(offset.X, -70, 70)
-				local z = math.clamp(offset.Z, -70, 70)
-
-				local dot = Instance.new("Frame", radarFrame)
-				dot.Size = UDim2.new(0, 4, 0, 4)
-				dot.Position = UDim2.new(0.5, x, 0.5, z)
-				dot.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				dot.BorderSizePixel = 0
-
-				-- jogador
-				local label = Instance.new("TextLabel")
-				label.Size = UDim2.new(0, 60, 0, 10)
-				label.Position = UDim2.new(0.5, x - 30, 0.5, z - 12)
-				label.BackgroundTransparency = 1
-				label.TextScaled = true
-				label.Font = Enum.Font.SourceSansBold
-				label.Text = plr.DisplayName or plr.Name
-				label.TextColor3 = Color3.fromRGB(255, 255, 255)
-				label.TextStrokeTransparency = 0.5
-				label.ZIndex = 2
-				label.Parent = radarFrame
-			end
-		end
-	end
-end
-
--- Ativa radar
-local function enableRadar()
-	if toggleRadar then return end
-	toggleRadar = true
-	createRadarUI()
-
-	local connection = RunService.RenderStepped:Connect(updateRadar)
-	table.insert(connections, connection)
-end
-
--- Desativa radar
-local function disableRadar()
-	toggleRadar = false
-
-	for _, conn in ipairs(connections) do
-		if conn.Disconnect then conn:Disconnect() end
-	end
-	connections = {}
-
-	if radarGui then
-		radarGui:Destroy()
-		radarGui = nil
-	end
-end
-
--- Toggle para o radar
-AddToggle(Servidor, {
-	Name = "Player Radar",
-	Default = false,
-	Callback = function(state)
-		if state then
-			enableRadar()
-		else
-			disableRadar()
-		end
-	end
-})
 
 -- Serviços
 local Players = game:GetService("Players")
@@ -1068,7 +958,7 @@ local LocalPlayer = Players.LocalPlayer
 local function Notify(title, text)
     pcall(function()
         StarterGui:SetCore("SendNotification", {
-            Title = title,
+           Title = title,
             Text = text,
             Icon = "rbxassetid://137903795082783",
             Duration = 3
@@ -1404,7 +1294,7 @@ local function enableMorningLight()
 	fullBrightEnabled = true
 
 	Lighting.Brightness = 1.5
-	Lighting.Ambient = Color3.fromRGB(180, 180, 160) -- tom suave
+	Lighting.Ambient = Color3.fromRGB(180, 180, 160) 
 	Lighting.OutdoorAmbient = Color3.fromRGB(200, 200, 170)
 	Lighting.ClockTime = 7 -- manhã cedo
 	Lighting.FogEnd = 1e9
