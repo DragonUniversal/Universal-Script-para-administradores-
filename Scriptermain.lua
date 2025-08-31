@@ -46,7 +46,7 @@ MakeWindow({
 
 MinimizeButton({
 
-    Image = "rbxassetid://137903795082783",
+    Image = "rbxassetid://86425525794471",
 
     Size = {40, 40},
 
