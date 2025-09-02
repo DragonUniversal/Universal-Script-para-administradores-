@@ -1029,18 +1029,22 @@ local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
 local trackedPlayers = {}
 
-local function disableCanCollide(part)
-    if part:IsA("BasePart") and part.CanCollide then
+local function protectPart(part)
+    if part:IsA("BasePart") then
         part.CanCollide = false
+        part.Velocity = Vector3.zero
+        part.RotVelocity = Vector3.zero
+        part.AssemblyLinearVelocity = Vector3.zero
+        part.AssemblyAngularVelocity = Vector3.zero
     end
 end
 
 local function trackCharacter(character)
     for _, part in pairs(character:GetChildren()) do
-        disableCanCollide(part)
+        protectPart(part)
     end
     character.ChildAdded:Connect(function(child)
-        disableCanCollide(child)
+        protectPart(child)
     end)
 end
 
@@ -1063,7 +1067,7 @@ local function applyAntiFling()
             local character = player.Character
             if character then
                 for _, part in pairs(character:GetChildren()) do
-                    disableCanCollide(part)
+                    protectPart(part)
                 end
             end
         end
@@ -1076,7 +1080,6 @@ AddButton(Servidor, {
         applyAntiFling()
     end
 })
-
 
 
 local Players = game:GetService("Players")
