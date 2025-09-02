@@ -6,7 +6,7 @@ MakeWindow({
 
     Hub = {
 
-        Title = "Dragon Menu I Universal - v6.2",
+        Title = "Dragon Menu I Universal - v6.3",
 
         Animation = "by : Victorscript"
 
