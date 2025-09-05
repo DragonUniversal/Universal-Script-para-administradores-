@@ -1024,65 +1024,6 @@ AddToggle(Servidor, {
 
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
-local localPlayer = Players.LocalPlayer
-local trackedPlayers = {}
-
-local function protectPart(part)
-    if part:IsA("BasePart") then
-        part.CanCollide = false
-        part.Velocity = Vector3.zero
-        part.RotVelocity = Vector3.zero
-        part.AssemblyLinearVelocity = Vector3.zero
-        part.AssemblyAngularVelocity = Vector3.zero
-    end
-end
-
-local function trackCharacter(character)
-    for _, part in pairs(character:GetChildren()) do
-        protectPart(part)
-    end
-    character.ChildAdded:Connect(function(child)
-        protectPart(child)
-    end)
-end
-
-local function trackPlayer(player)
-    if player == localPlayer then return end
-    if player.Character then
-        trackCharacter(player.Character)
-    end
-    player.CharacterAdded:Connect(trackCharacter)
-    trackedPlayers[player] = true
-end
-
-local function applyAntiFling()
-    for _, player in pairs(Players:GetPlayers()) do
-        trackPlayer(player)
-    end
-    Players.PlayerAdded:Connect(trackPlayer)
-    RunService.RenderStepped:Connect(function()
-        for player in pairs(trackedPlayers) do
-            local character = player.Character
-            if character then
-                for _, part in pairs(character:GetChildren()) do
-                    protectPart(part)
-                end
-            end
-        end
-    end)
-end
-
-AddButton(Servidor, {
-    Name = "Anti Fling (Test)",
-    Callback = function()
-        applyAntiFling()
-    end
-})
-
-
-local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
