@@ -1274,30 +1274,6 @@ AddToggle(Config, {
 })
 
 
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local PlayerGui = player:WaitForChild("PlayerGui")
-
-local hudRemovido = false
-
-local function setHUD(ativo)
-    for _, gui in ipairs(PlayerGui:GetChildren()) do
-        if gui:IsA("ScreenGui") and gui.Name ~= "TouchGui" then
-            gui.Enabled = not ativo
-        end
-    end
-    hudRemovido = ativo
-end
-
-AddToggle(Config, {
-    Name = "Remover Hud",
-    Default = false,
-    Callback = function(Value)
-        setHUD(Value)
-    end
-})
-
-
 local Lighting = game:GetService("Lighting")  
 
 -- Armazena configurações originais
